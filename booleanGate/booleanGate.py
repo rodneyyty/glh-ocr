@@ -160,12 +160,18 @@ def loadTestSet():
 
 
 # this method just zooms in on the phrasing required
-def concatenateItem(text,word):
-    # looking for the word
-    start_index = text.find(word)
-    end_index = start_index + len(word)  # if the start_index is not -1
-
+def concatenateItem(text, word):
     items = text.split()
+    pos = items.index(word)
+    start = 0
+    end = len(items)
+    if (pos - 10) > start:
+        start = pos - 10
+    if (pos + 11) < end:
+        end = pos + 11
+    toReturn = items[start:end]
+
+    return ' '.join(toReturn)
 
 
 def callBoolGate():
@@ -192,7 +198,7 @@ def callBoolGate():
                     print("------------------------------------------------")
                     print("Phrase found : " + phrases)
                     print("Type of relation : " + relKeys[ex])
-                    print("Corresponding item :  " + item)
+                    print("Corresponding item :  " + concatenateItem(item, phrases))
                     print("------------------------------------------------")
 
     with open('data.json', 'w') as outfile:
@@ -203,4 +209,4 @@ def callBoolGate():
 # loadIRAS()
 # print(loadRelations())
 # loadTestSet()
-# callBoolGate()
+callBoolGate()
