@@ -10,7 +10,17 @@ import csv
 import os
 import itertools
 import json
+import pprint
+from io import StringIO
 
+# import PyPDF2
+from PyPDF2 import utils,PdfFileReader
+import subprocess
+
+
+
+# take output file, everynode you have a type for i pass to cc
+# entity/document name, draw edge, metadata
 
 ###START OF DEFINING RELATIONS BETWEEN NODES###
 
@@ -45,35 +55,6 @@ def populateNodes(documents_list):
             "relationships": node.relationships
         }
 
-
-def searchRel():
-    return "searchRel"
-
-
-def searchClause():
-    return "searchClause"
-
-
-def searchInd():
-    return "searchInd"
-
-
-def searchAbb():
-    return "searchAbb"
-
-
-def searchAlgo():
-    return "searchAlgo"
-
-
-expressions = {
-    0: searchRel,
-    1: searchClause,
-    2: searchInd,
-    3: searchAbb,
-    4: searchAlgo
-}
-
 relKeys = {
     0: "relationship",
     1: "clauses - number,number",
@@ -103,7 +84,7 @@ def loadRelations():
                         relDict[num].append(temp)
             except Exception as e:
                 break
-    #        print (relDict)
+
     return relDict
 
 
@@ -111,9 +92,10 @@ def loadRelations():
 
 
 # laoding dataset from IRAS
-# just getting the names
+# loads files individually and converts to text
 def loadIRAS():
-    path = u'data\\IRAS'
+    path = u'../data/IRAS/'
+    pathName = "..\\data\\IRAS\\"
     lists = [[[y for y in x] for x in items if "C:\\" not in x] for items in os.walk(path)]
     IRAS_list = [[[x for x in item] for item in items[1:] if len(item) > 0] for items in lists]
 
@@ -122,14 +104,62 @@ def loadIRAS():
 
     IRAS_dict = {}
 
-    for items in IRAS_list:
-        #        print()
-        #        print(items)
-        IRAS_dict[items] = []
-    #        print()
+    for items in IRAS_list[1:]:
+        # print()
+        # print(items)
+        IRAS_dict[items] = pdfToText(pathName,items)
+        break
+        # print()
 
-    print(IRAS_dict)
+    with open(u'..\\data\\IRAS_data.txt', 'w') as outfile:
+        json.dump(IRAS_dict, outfile)
 
+    return IRAS_dict
+
+def pdfToText(pathName,items):
+    file_location =pathName+items
+    tempList = []
+    listToReturn = []
+    dictToReturn = {"relations" : []}
+
+    # x = open('../data/IRAS/eTax Guide_GST_Zero-rating of tools and machines_2013_12_31.pdf', 'rb')
+    pdfFileObj = open(file_location, 'rb')
+    # with open(file, 'rb') as input_file:
+    #     input_buffer = StringIO(input_file.read())
+    try:
+        input_pdf = PdfFileReader(open(file_location, 'rb'),strict=False)
+        numPages = input_pdf.numPages
+
+        for i in range(0, numPages):
+            #for each page, read the text on the page
+            pageObj = input_pdf.getPage(i)
+            # print("---START OF READING A PAGE ONLY---")
+            # print(pageObj.extractText().split())
+            #remove whitespaces
+            # tempList = ' '.join(pageObj.extractText().split())
+            tempList = pageObj.extractText().split()
+            # take note that this is in binary
+            #high level joining
+            # print(tempList)
+            listToReturn.append(tempList)
+            dictToReturn[str(i)] = tempList
+            # print("---END OF READING A PAGE ONLY---")
+
+
+    except OSError:
+        with open(u'..\\data\\error.txt', 'a') as outfile:
+            outfile.write("OSError: " + items + " cannot be opened")
+            outfile.close()
+            print(OSError)
+    except utils.PdfReadError:
+        with open(u'..\\data\\error.txt', 'a') as outfile:
+            outfile.write("OSError: " + items + " cannot be opened")
+            outfile.close()
+            print(utils.PdfReadError)
+
+    return dictToReturn
+
+##END OF READING IRAS SET ###
 
 def loadTestSet():
     test_set = []
@@ -161,13 +191,14 @@ def loadTestSet():
 
 # this method just zooms in on the phrasing required
 def concatenateItem(text, word):
+    #    print(text)
     items = text.split()
     pos = items.index(word)
     start = 0
     end = len(items)
-    if (pos - 10) > start:
+    if (pos - 10) >= start:
         start = pos - 10
-    if (pos + 11) < end:
+    if (pos + 11) <= end:
         end = pos + 11
     toReturn = items[start:end]
 
@@ -205,8 +236,52 @@ def callBoolGate():
         json.dump(temp_test, outfile)
     print("END OF STATEMENT")
 
+#i added a break -> dun forget to remove
+dict_ = loadIRAS()
+pp = pprint.PrettyPrinter(indent=3)
+# pp.pprint(dict_)
 
-# loadIRAS()
-# print(loadRelations())
+
+# print(dict_)
+# pp.pprint(loadRelations())
+
+def findRel(data,gate):
+    for title, d in data.items():
+        #title (which is the key) is the title of the pdf
+        print(title)
+        #d contains the data for each page and corresponding relations
+        print(d)
+
+        #we have to iterate through d to get the data on individual pages
+        for page, d2 in d.items():
+            #key is page, its in string, convert to int
+
+            #page_no = int(page)
+
+            #d2 is the data, break it down
+            #
+
+            print(d2)
+
+
+        break
+    return
+
+def find(array):
+    #relations dict
+    rel_ = loadRelations()
+
+    for x in range(0,3):
+        print(rel_[x])
+
+    for key,value in array.items():
+        print(value)
+
+# findRel(loadIRAS(),loadRelations())
+
+find(loadIRAS())
+
 # loadTestSet()
-callBoolGate()
+# callBoolGate()
+
+# pdfToText()
