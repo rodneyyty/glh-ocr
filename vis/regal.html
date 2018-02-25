@@ -1,45 +1,62 @@
 <meta charset="UTF-8">
 <html>
-    <script src="lib/sigma.min.js"></script>
-    <script src="lib/sigma.renderers.customShapes.min.js"></script>
-    <script src="lib/sigma.renderers.edgeLabels.min.js"></script>
-    <script src="lib/sigma.plugins.dragNodes.min.js"></script>
-    <script>
-        function load_graph(){
-            fetch("data.json")
-                .then(function(response) {
-                    return response.json();
-                })
-                .then(data => {
-                    let s = new sigma({
-                        graph: data
-                        ,container: document.getElementById('container')
-                        ,renderer: {
-                            container: document.getElementById('container'),
-                            type: "canvas"
-                        }
-                        ,settings: { // https://github.com/jacomyal/sigma.js/wiki/Settings
-                            edgeLabelSize: 'proportional'
-                            ,labelThreshold: 0
-                            ,sideMargin: 1
-                        }
-                    });
-                    // draggable nodes
-                    sigma.plugins.dragNodes(s, s.renderers[0]);
-                    // custom shapes
-                    CustomShapes.init(s);
-                    // onClick
-                    s.bind('clickNode', function(e) {
-                        window.open(e.data.node.path);
-                    });
+<script src="lib/sigma.min.js"></script>
+<script src="lib/sigma.renderers.customShapes.min.js"></script>
+<script src="lib/sigma.renderers.edgeLabels.min.js"></script>
+<script src="lib/sigma.plugins.dragNodes.min.js"></script>
+<script>
+    window.oncontextmenu = function() {
+        return false;
+    };
 
-                    s.refresh();
-                });
-        }
+    let json_path = 'data.json';
 
-        window.onload = load_graph;
-    </script>
-    <body>
-        <div id="container" style="display:flex; width:100%; height:100%;"></div>
-    </body>
+    function load_graph(){
+        fetch(json_path)
+            .then(function(response) {
+                return response.json();
+            })
+            .then(data => {
+            let s = new sigma({
+                graph: data
+                ,container: document.getElementById('container')
+                ,renderer: {
+                    container: document.getElementById('container'),
+                    type: "canvas"
+                }
+                ,settings: { // https://github.com/jacomyal/sigma.js/wiki/Settings
+                    edgeLabelSize: 'proportional'
+                    ,labelThreshold: 0
+                    ,sideMargin: 1
+                }
+            });
+        // draggable nodes
+        sigma.plugins.dragNodes(s, s.renderers[0]);
+        // custom shapes
+        CustomShapes.init(s);
+
+        s.bind('doubleClickNode', function(e) {
+            window.open(e.data.node.path);
+        });
+
+        s.bind('rightClickNode', function(e) {
+            json_path = e.data.node.label + '.graph';
+            var g = document.querySelector('#container');
+            var p = g.parentNode;
+            p.removeChild(g);
+            var c = document.createElement('div');
+            c.setAttribute('id', 'container');
+            c.setAttribute('style', 'display:flex; width:100%; height:100%')
+            p.appendChild(c);
+            load_graph();
+        });
+        s.refresh();
+    });
+    }
+
+    window.onload = load_graph;
+</script>
+<body>
+<div id="container" style="display:flex; width:100%; height:100%;"></div>
+</body>
 </html>
