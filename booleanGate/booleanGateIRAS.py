@@ -46,7 +46,6 @@ def loadTestSet():
                 #     doc_ = IRAS_data[doc_]
                 if len(doc_) > 0:
                     if len(doc_) > 4:
-                        print("THE FUCKING VALUE IS " + doc_)
                         rel_data[doc_] = rel_
                         edge_list["n" + id] = rel_data
                         count += 1
@@ -99,7 +98,6 @@ def loadTestSet():
                 for key2,relations_item in value.items():
                     print(node_list)
                     if len(relations_item) > 5:
-                        print("YOOOOO " + key2[len(key2)-4:])
                         if key2[len(key2)-4:] != '.pdf':
                             #adding a missing document
                             tempNode = {

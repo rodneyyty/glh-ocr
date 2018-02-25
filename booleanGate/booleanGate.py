@@ -62,7 +62,7 @@ def executeRel(node, node_dict, count):
             print("Number of documents remaining : " + str(len(node_dict) - count))
             x += 1
             if x > 5:
-                text = "*Error* Can you not be a fucking moron. Enter a number    :   "
+                text = ""
                 print("Number of documents remaining : " + str(len(node_dict) - count))
             chosen = str(input(text))
 
@@ -92,7 +92,6 @@ def populateNodes(documents_list):
         count +=1
     # 3. create nodes after checking all of the relations
 
-    # it needs to be NODE FUCKING OBJECTS OKAY
         node_list.append(node)
 
     # 4. return as dictionary of nodes
