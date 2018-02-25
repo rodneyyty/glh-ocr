@@ -29,6 +29,10 @@
                     edgeLabelSize: 'proportional'
                     ,labelThreshold: 0
                     ,sideMargin: 1
+                    ,enableHovering: true
+                    ,nodeHoverColor: '#ff0000'
+                    ,defaultNodeColor: '#000'
+                    ,edgeColor: 'source'
                 }
             });
         // draggable nodes
@@ -51,6 +55,17 @@
             p.appendChild(c);
             load_graph();
         });
+
+        s.bind('overNode', function(e) {
+            e.data.node.color = '#612a8a';
+            s.refresh()
+        });
+
+        s.bind('outNode', function(e) {
+            e.data.node.color = '#000';
+            s.refresh()
+        });
+
         s.refresh();
     });
     }
