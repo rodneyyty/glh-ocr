@@ -1,4 +1,10 @@
+import docx
 import os
+
+from gensim.models import Doc2Vec
+from PyPDF2 import utils,PdfFileReader
+
+MODEL = None
 
 CLASSES = [
     u'employment-agreement'
@@ -41,3 +47,38 @@ def get_label(json_data):
         return category
     else:
         return 'OTHERS'
+
+
+def predict_type(contract_toks):
+    global MODEL
+    if MODEL is None:
+        MODEL = Doc2Vec.load('lawinsider.model')
+    vec = MODEL.infer_vector(contract_toks)
+    [(label, _)] = MODEL.docvecs.most_similar([vec], topn=1)
+    return label
+
+
+def dirPdfsToToks(dir_path):
+    toks_list = []
+    for file_name in os.listdir(dir_path):
+        file_path = os.path.join(dir_path, file_name)
+        toks = []
+        if '.pdf' in file_name:
+            try:
+                input_pdf = PdfFileReader(open(file_path, 'rb'), strict=False)
+                for page_idx in range(0, input_pdf.numPages):
+                    toks += input_pdf.getPage(page_idx).extractText().split()
+                if len(toks) > 0:
+                    toks_list.append((file_name, toks))
+            except OSError:
+                print(OSError)
+            except utils.PdfReadError:
+                print(utils.PdfReadError)
+        elif '.doc' in file_name:
+            doc = docx.Document(file_path)
+            toks = []
+            for para in doc.paragraphs:
+                toks += para.text.split()
+            if len(toks) > 0:
+                toks_list.append((file_name, toks))
+    return toks_list

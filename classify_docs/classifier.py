@@ -12,13 +12,12 @@ def main(args):
         for line in f.readlines():
             label, words = line.split(' ', 1)
             corpus.append(TaggedDocument(words.strip().split(), [label]))
-    model = Doc2Vec(vector_size=300, min_count=2, iter=3, workers=24)
+    model = Doc2Vec(size=300, min_count=2, iter=3, workers=24)
     model.build_vocab(corpus)
-    model.train(corpus, total_examples=model.corpus_count, epochs=10)
+    model.train(corpus, total_examples=model.corpus_count, epochs=3)
     model.save("lawinsider.model")
 
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-# nohup python -u classifier.py /home/ccchia.2014/glh-ocr/data/lawinsider/ &> classifier.out &
-# python classifier.py C:\Users\chongcher\Documents\glh-ocr\data\lawinsider_2
+# nohup python -u classifier.py lawinsider.corpus &> classifier.out &
