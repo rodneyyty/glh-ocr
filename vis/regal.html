@@ -1,6 +1,7 @@
 <meta charset="UTF-8">
 <html>
 <script src="lib/sigma.min.js"></script>
+<script src="lib/sigma.layout.forceAtlas2.min.js"></script>
 <script src="lib/sigma.renderers.customShapes.min.js"></script>
 <script src="lib/sigma.renderers.edgeLabels.min.js"></script>
 <script src="lib/sigma.renderers.parallelEdges.min.js"></script>
@@ -30,7 +31,6 @@
                     ,labelThreshold: 0
                     ,sideMargin: 1
                     ,enableHovering: true
-                    ,nodeHoverColor: '#ff0000'
                     ,defaultNodeColor: '#000'
                     ,edgeColor: 'source'
                 }
@@ -65,6 +65,9 @@
             e.data.node.color = '#000';
             s.refresh()
         });
+
+        s.startForceAtlas2({worker: true, barnesHutOptimize: false});
+        setTimeout(function(){ s.killForceAtlas2(); }, 1500);
 
         s.refresh();
     });
