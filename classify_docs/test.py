@@ -1,13 +1,18 @@
-import sys
+import os, sys
 
-from utility import dirPdfsToToks, predict_type
+from utility import predict_type
+from tika import parser
 
 
 def main(args):
-    contracts_toks = dirPdfsToToks(args[0])
-    for (file_path, toks) in contracts_toks:
-        prediction = predict_type(toks)
-        print(file_path + ': ' + prediction)
+    dir_path = args[0]
+    for file_name in os.listdir(dir_path):
+        file_path = os.path.join(dir_path, file_name)
+        try:
+            toks = parser.from_file(file_path)['content'].split()
+            print(file_name + ': ' + predict_type(toks))
+        except Exception as e:
+            print(str(e))
 
 
 if __name__ == "__main__":
