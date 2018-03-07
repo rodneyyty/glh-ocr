@@ -7,45 +7,44 @@ import json
 from bs4 import BeautifulSoup
 from gensim.models import Doc2Vec
 from PyPDF2 import utils, PdfFileReader
+from collections import defaultdict
 
-MODEL = None
+MODEL = defaultdict(lambda: None)
 
 LAWINSIDER_CLASSES = [
     u'employment-agreement'
-    , u'purchase-agreement'
+    # , u'purchase-agreement'
     , u'stockholders-agreement'
     , u'loan-agreement'
-    , u'stock-option-agreement'
-    , u'license-agreement'
-    , u'underwriting-agreement'
-    , u'articles-of-incorporation'
-    , u'share-purchase-agreement'
-    , u'sale-and-purchase-agreement'
-    , u'share-exchange-agreement'
-    , u'financing-agreement'
-    , u'master-services-agreement'
-    , u'master-repurchase-agreement'
-    , u'repurchase-agreement'
-    , u'stockholder-agreement'
+    # , u'stock-option-agreement'
+    # , u'license-agreement'
+    # , u'underwriting-agreement'
+    # , u'articles-of-incorporation'
+    # , u'share-purchase-agreement'
+    # , u'sale-and-purchase-agreement'
+    # , u'share-exchange-agreement'
+    # , u'financing-agreement'
+    # , u'master-services-agreement'
+    # , u'master-repurchase-agreement'
+    # , u'repurchase-agreement'
 ]
 
 REGEX_TYPES = [
     'employment agreement'
-    , 'purchase agreement'
+    # , 'purchase agreement'
     , 'stockholders agreement'
     , 'loan agreement'
-    , 'stock option agreement'
-    , 'license agreement'
-    , 'underwriting agreement'
-    , 'articles of incorporation'
-    , 'share purchase agreement'
-    , 'sale and purchase agreement'
-    , 'share exchange agreement'
-    , 'financing agreement'
-    , 'master services agreement'
-    , 'master repurchase agreement'
-    , 'repurchase agreement'
-    , 'stockholder agreement'
+    # , 'stock option agreement'
+    # , 'license agreement'
+    # , 'underwriting agreement'
+    # , 'articles of incorporation'
+    # , 'share purchase agreement'
+    # , 'sale and purchase agreement'
+    # , 'share exchange agreement'
+    # , 'financing agreement'
+    # , 'master services agreement'
+    # , 'master repurchase agreement'
+    # , 'repurchase agreement'
 ]
 
 
@@ -64,12 +63,12 @@ def get_abs_path_from_args(args, expected_paths):
         quit(1)
 
 
-def predict_type(contract_toks):
+def predict_type(model, contract_toks):
     global MODEL
-    if MODEL is None:
-        MODEL = Doc2Vec.load('lawinsider.model')
-    vec = MODEL.infer_vector(contract_toks)
-    [(label, _)] = MODEL.docvecs.most_similar([vec], topn=1)
+    if MODEL[model] is None:
+        MODEL[model] = Doc2Vec.load(model)
+    vec = MODEL[model].infer_vector(contract_toks)
+    [(label, _)] = MODEL[model].docvecs.most_similar([vec], topn=1)
     return label
 
 

@@ -17,7 +17,7 @@ def main(args):
     with io.open(corpus_outfile, 'w', encoding='utf-8') as out:
         for html_path in html_paths:
             json_path = html_path.replace('.html', '.json')
-            toks = lawinsider_get_toks(html_path)
+            toks = lawinsider_get_toks(html_path, pages=2)
             label = lawinsider_get_label(json_path)
             if label is not None:
                 class_counter[label] += 1
