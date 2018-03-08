@@ -1,0 +1,22 @@
+{
+  "name": "glh",
+  "version": "1.0.0",
+  "description": "Global Legal Hackathon... stuff.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tetratorus/glh-ocr.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tetratorus/glh-ocr/issues"
+  },
+  "homepage": "https://github.com/tetratorus/glh-ocr#readme",
+  "dependencies": {
+    "express": "^4.16.2"
+  }
+}

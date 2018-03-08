@@ -11,7 +11,7 @@ Created on Sat Feb 24 12:00:28 2018
 
 import docx2txt
 
-path = u'..\\data\\IRAS\\Additional Conveyance Duties (ACD) On Residential Property-Holding Entities.docx'
+path = u'../data/IRAS/Additional Conveyance Duties (ACD) On Residential Property-Holding Entities.docx'
 
 para = "7.2 With regard to the ASK declaration, you must maintain the working templates in Section 3 of the ASK to support that the “ASK: Declaration Form on Completing Annual Review & Voluntary Disclosure of Errors” is accurately completed. We may request for the working templates in Paragraph 2.4 when reviewing your application in."
 para = para.split()

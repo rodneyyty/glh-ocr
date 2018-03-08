@@ -7,19 +7,21 @@ Created on Sat Feb 24 12:00:28 2018
 
 """
 
-
 import csv
 import os
 import itertools
 import json
 import pprint
 from io import StringIO
+import io
+import inspect
+import codecs
+
 
 # import PyPDF2
 from PyPDF2 import utils,PdfFileReader
 import subprocess
 import random
-
 
 def loadTestSet():
     test_set = []
@@ -29,11 +31,15 @@ def loadTestSet():
     node_list = []
 
 #nodelist
-    with open(u'..\\data\\IRAS_cleaned.csv','r') as infile:
+    with codecs.open(u'../data/IRAS_cleaned.csv','r',encoding="utf-8", errors='ignore') as infile:
         # json.dump("", outfile)
         reader = csv.reader(infile)
         count = 0
-
+        try:
+            reader.next()
+        except Exception as e:
+            print ('aosidjfoasdif')
+            print (e)
         for x in reader:
             doc_name = x[0]
             id = x[1]
@@ -78,7 +84,11 @@ def loadTestSet():
             }
             # print("Appending :")
             pp = pprint.PrettyPrinter(indent=3)
-            pp.pprint(edge_list)
+            try:
+                pp.pprint(edge_list)
+            except:
+                print ("edge list got problem")
+                print (edge_list)
             print(len(edge_list))
 
             # appendToFile(u'..\\data\\booleanGate.json', tempNode)
@@ -196,7 +206,7 @@ def chooseOne(node,node_list, edge_list):
 
 
 def appendToFile(pathName,data):
-    with open(pathName, 'w') as outfile:
+    with codecs.open(pathName, 'w', encoding="utf-8", errors='ignore') as outfile:
         json.dump(data, outfile)
 
 def loadIRAS():
