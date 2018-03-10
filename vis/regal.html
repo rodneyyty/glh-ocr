@@ -11,11 +11,12 @@
         return false;
     };
 
-    let json_path = 'data.json';
+    let json_path = 'datas.json';
 
     function load_graph(){
         fetch(json_path)
             .then(function(response) {
+              console.log(response)
                 return response.json();
             })
             .then(data => {

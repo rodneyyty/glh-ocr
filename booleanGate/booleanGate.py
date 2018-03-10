@@ -5,7 +5,7 @@ Created on Sat Feb 24 12:00:28 2018
 """
 
 import csv, os, itertools, json, pprint, pdb, random, time
-
+import codecs
 import pdb
 from io import StringIO
 from PyPDF2 import utils, PdfFileReader
@@ -23,10 +23,14 @@ def generateVis():
     node_list = []
 
     # reading relation file between IRAS files
-    with open(u'..\\data\\IRAS_cleaned.csv', 'r') as infile:
+    with codecs.open(u'../data/IRAS_cleaned.csv', 'r', encoding="utf-8", errors='ignore') as infile:
         reader = csv.reader(infile)
         for x in reader:
             doc_name = (x[0].split(':')[1])[1:]
+            if (doc_name not in IRAS_data.values()):
+                print (doc_name)
+                print (IRAS_data.values())
+                continue
             nid = x[1]
             data = x[2:]
             rel_data = {}
@@ -35,9 +39,8 @@ def generateVis():
             while len(data) > 0:
                 rel_ = data.pop(0)
                 doc_ = data.pop(0)
-
                 if len(doc_) > 0:
-                    if is_number(doc_):
+                    if is_number(doc_) and doc_ in IRAS_data:
                         doc_ = IRAS_data[doc_]
                         rel_data[doc_] = rel_
                         edge_list["n" + nid] = rel_data
@@ -89,7 +92,7 @@ def appendToFile(pathName, data):
 # human input follows the code that we generated from this list
 def loadIRAS():
     indexer = {}
-    pathName = "..\\data\\IRAS\\"
+    pathName = "../data/IRAS/"
     lists = [[[y for y in x] for x in items if "C:\\" not in x] for items in os.walk(pathName)]
     IRAS_list = [[[x for x in item] for item in items[1:] if len(item) > 0] for items in lists]
     flattened_list = list(itertools.chain(*IRAS_list))
@@ -189,12 +192,12 @@ def filterByFileName(file_name):
 
 
 def getAllNodes():
-    data = json.load(open(u'../vis/datas.json'))
+    data = json.load(codecs.open(u'../vis/datas.json',encoding="utf-8", errors='ignore'))
     return data['nodes']
 
 
 def getAllEdges():
-    data = json.load(open(u'../vis/datas.json'))
+    data = json.load(codecs.open(u'../vis/datas.json',encoding="utf-8", errors='ignore'))
     return data['edges']
 
 

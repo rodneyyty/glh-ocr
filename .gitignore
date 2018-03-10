@@ -15,3 +15,7 @@ node_modules/
 
 # classifier stuff is too big
 classify_docs/
+
+data/temp/
+
+data/IRAS/
