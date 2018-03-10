@@ -85,15 +85,17 @@ def loadTestSet():
             # print("Appending :")
             pp = pprint.PrettyPrinter(indent=3)
             try:
-                pp.pprint(edge_list)
+                # pp.pprint(edge_list)
+                print ("EDGE LIST")
+                print (edge_list)
             except:
                 print ("edge list got problem")
                 print (edge_list)
-            print(len(edge_list))
+            # print(len(edge_list))
 
             # appendToFile(u'..\\data\\booleanGate.json', tempNode)
 
-        print()
+        # print()
 
         edge_count = 0
         ms_count = 0
@@ -102,11 +104,11 @@ def loadTestSet():
         for key,value in edge_list.items():
             #remove for filtering
 
-            print("The item len is " + key + " : "+ str(len(value)))
+            # print("The item len is " + key + " : "+ str(len(value)))
 
             if key in ["n29","n101","n124","n108","n27","n96"]:
                 for key2,relations_item in value.items():
-                    print(node_list)
+                    # print(node_list)
                     if len(relations_item) > 5:
                         if key2[len(key2)-4:] != '.pdf':
                             #adding a missing document
@@ -121,7 +123,7 @@ def loadTestSet():
                             }
                             ms_count -= 5
                             node_list.append(tempNode)
-                            pp.pprint(tempNode)
+                            # pp.pprint(tempNode)
                         else:
                             # adding a missing document
                             tempNode = {
@@ -135,7 +137,7 @@ def loadTestSet():
                             }
                             ms_count -= 5
                             node_list.append(tempNode)
-                            pp.pprint(tempNode)
+                            # pp.pprint(tempNode)
 
 
                         nodeEdges = {
@@ -147,7 +149,7 @@ def loadTestSet():
                             , "size" : 5
                             , "count" : source_count
                         }
-                        pp.pprint(nodeEdges)
+                        # pp.pprint(nodeEdges)
                     else:
                         nodeEdges = {
                             "id": "e" + str(edge_count)

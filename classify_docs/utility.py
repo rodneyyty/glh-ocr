@@ -1,4 +1,4 @@
-import docx
+# import docx
 import os
 import re
 import io
@@ -67,6 +67,7 @@ def predict_type(model, contract_toks):
     global MODEL
     if MODEL[model] is None:
         MODEL[model] = Doc2Vec.load(model)
+    print (contract_toks)
     vec = MODEL[model].infer_vector(contract_toks)
     [(label, _)] = MODEL[model].docvecs.most_similar([vec], topn=1)
     return label
@@ -88,13 +89,13 @@ def dirPdfsToToks(dir_path):
                 print(OSError)
             except utils.PdfReadError:
                 print(utils.PdfReadError)
-        elif '.doc' in file_name:
-            doc = docx.Document(file_path)
-            toks = []
-            for para in doc.paragraphs:
-                toks += para.text.split()
-            if len(toks) > 0:
-                toks_list.append((file_name, toks))
+        # elif '.doc' in file_name:
+        #     doc = docx.Document(file_path)
+        #     toks = []
+        #     for para in doc.paragraphs:
+        #         toks += para.text.split()
+        #     if len(toks) > 0:
+        #         toks_list.append((file_name, toks))
     return toks_list
 
 
