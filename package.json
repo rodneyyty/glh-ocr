@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tetratorus/glh-ocr#readme",
   "dependencies": {
+    "d3fc-label-layout": "^5.1.0",
     "express": "^4.16.2"
   }
 }

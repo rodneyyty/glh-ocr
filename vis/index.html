@@ -27,6 +27,12 @@ text {
 
 </style>
 <body>
+  <select id="filterSelect">
+    <option value="all" selected>All</option>
+    <option value="circles">Circles</option>
+  </select>
+  <input id="searchField"/><button id="searchBtn">Search</button>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 var w = window.innerWidth;
@@ -47,6 +53,7 @@ var color = d3.scale.linear()
   .range(["lime", "yellow", "red"]);
 
 var highlight_color = "blue";
+var highlight_color_2 = "aquamarine"
 var highlight_trans = 0.1;
 
 var size = d3.scale.pow().exponent(1)
@@ -74,11 +81,41 @@ var zoom = d3.behavior.zoom().scaleExtent([min_zoom,max_zoom])
 var g = svg.append("g");
 svg.style("cursor","move");
 
-d3.json("graph.json", function(error, graph) {
+d3.json("datas.json", function(error, graph) {
 
-// map input json to fit this template
-// graph.links = graph.edge
 
+// get links
+let idToIndexMap = {}
+graph.nodes.map((node, i) => {
+  idToIndexMap[node.id] = i
+})
+// console.log(idToIndexMap)
+graph.links = graph.edges.map((edge) => {
+  edge = JSON.parse(JSON.stringify(edge))
+  edge.origSource = edge.source
+  edge.origTarget = edge.target
+  edge.source = idToIndexMap[edge.source]
+  edge.target = idToIndexMap[edge.target]
+  return edge
+})
+
+$('#filterSelect').on('change', function(event) {
+  console.log('CHANGED', $(this).val())
+})
+$('#searchField').on('keyup', function(event) {
+  if(event.keyCode === 13) {
+    $('#searchBtn').click()
+  }
+})
+$('#searchBtn').on('click', function(event) {
+  if ($('#searchField').val() === '') {
+    clear_highlight()
+  } else {
+    search_highlight($('#searchField').val())
+  }
+})
+
+// console.log(graph.links)
 
 // var tempNodes = graph.nodes
 // var newGraphNodes = {}
@@ -92,7 +129,13 @@ var linkedByIndex = {};
     });
 
 	function isConnected(a, b) {
-        return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
+      if (linkedByIndex[a.index + "," + b.index] || a.index == b.index) {
+        return 1
+      } else if (linkedByIndex[b.index + "," + a.index]) {
+        return 2
+      } else {
+        return 0
+      }
     }
 
 	function hasConnections(a) {
@@ -131,7 +174,7 @@ var linkedByIndex = {};
       .attr("markerHeight", 6)
       .attr("orient", "auto")
     .append("svg:path")
-      .attr("d", "M0,-6L10,-1L0,4");
+      .attr("d", "M0,-5L10,-1L0,3");
 
 // NEW STUFF
 
@@ -140,16 +183,21 @@ var linkedByIndex = {};
     .enter().append("g")
     .attr("class", "node")
     .call(force.drag)
+  GLOBAL_NODES = node
 
+  node.on("dblclick", function(d) {
+    d3.event.stopPropagation();
+    window.open(d.path);
+  })
 
-	node.on("dblclick.zoom", function(d) { d3.event.stopPropagation();
-	var dcx = (window.innerWidth/2-d.x*zoom.scale());
-	var dcy = (window.innerHeight/2-d.y*zoom.scale());
-	zoom.translate([dcx,dcy]);
-	 g.attr("transform", "translate("+ dcx + "," + dcy  + ")scale(" + zoom.scale() + ")");
-
-
-	});
+	// node.on("dblclick.zoom", function(d) { d3.event.stopPropagation();
+	// var dcx = (window.innerWidth/2-d.x*zoom.scale());
+	// var dcy = (window.innerHeight/2-d.y*zoom.scale());
+	// zoom.translate([dcx,dcy]);
+	//  g.attr("transform", "translate("+ dcx + "," + dcy  + ")scale(" + zoom.scale() + ")");
+  //
+  //
+	// });
 
 
 
@@ -169,10 +217,10 @@ var linkedByIndex = {};
       .attr("d", d3.svg.symbol()
         .size(function(d) { return Math.PI*Math.pow(size(d.size)||nominal_base_node_size,2); })
         .type(function(d) { return d.type; }))
-
-	.style(tocolor, function(d) {
-	if (isNumber(d.score) && d.score>=0) return color(d.score);
-	else return default_node_color; })
+  .style(tocolor, default_node_color)
+	// .style(tocolor, function(d) {
+	// if (isNumber(d.score) && d.score>=0) return color(d.score);
+	// else return default_node_color; })
     //.attr("r", function(d) { return size(d.size)||nominal_base_node_size; })
 	.style("stroke-width", nominal_stroke)
 	.style(towhite, "white");
@@ -185,11 +233,11 @@ var linkedByIndex = {};
 	.style("font-size", nominal_text_size + "px")
 
 	if (text_center)
-	 text.text(function(d) { return d.id; })
+	 text.text(function(d) { return d.label; })
 	.style("text-anchor", "middle");
 	else
 	text.attr("dx", function(d) {return (size(d.size)||nominal_base_node_size);})
-    .text(function(d) { return '\u2002'+d.id; });
+    .text(function(d) { return '\u2002'+d.label; });
 
 	node.on("mouseover", function(d) {
 	set_highlight(d);
@@ -254,6 +302,19 @@ if (highlight_trans<1)  {
 	}
 }
 
+function clear_highlight() {
+  circle.style(towhite, "white")
+}
+
+function search_highlight(searchStr) {
+  circle.style(towhite, function(o) {
+    if (o.label.indexOf(searchStr) > -1) {
+      return "red"
+    } else {
+      return "white"
+    }
+  });
+}
 
 function set_highlight(d)
 {
@@ -264,12 +325,26 @@ function set_highlight(d)
 	if (highlight_color!="white")
 	{
 		  circle.style(towhite, function(o) {
-                return isConnected(d, o) ? highlight_color : "white";});
+        let connectedRes = isConnected(d ,o)
+        if (connectedRes === 1) {
+          return highlight_color
+        } else if (connectedRes === 2) {
+          return highlight_color_2
+        } else {
+          return 'white'
+        }
+      });
 			text.style("font-weight", function(o) {
                 return isConnected(d, o) ? "bold" : "normal";});
             link.style("stroke", function(o) {
-		      return o.source.index == d.index || o.target.index == d.index ? highlight_color : ((isNumber(o.score) && o.score>=0)?color(o.score):default_link_color);
-
+              if (o.source.index == d.index) {
+                return highlight_color
+              } else if (o.target.index == d.index) {
+                return highlight_color_2
+              } else {
+                return default_link_color
+              }
+		      // return o.source.index == d.index || o.target.index == d.index ? highlight_color : ((isNumber(o.score) && o.score>=0)?color(o.score):default_link_color);
             });
 	}
 }
@@ -339,44 +414,44 @@ function set_highlight(d)
 	}
 
 	function keydown() {
-	if (d3.event.keyCode==32) {  force.stop();}
-	else if (d3.event.keyCode>=48 && d3.event.keyCode<=90 && !d3.event.ctrlKey && !d3.event.altKey && !d3.event.metaKey)
-	{
-  switch (String.fromCharCode(d3.event.keyCode)) {
-    case "C": keyc = !keyc; break;
-    case "S": keys = !keys; break;
-	case "T": keyt = !keyt; break;
-	case "R": keyr = !keyr; break;
-    case "X": keyx = !keyx; break;
-	case "D": keyd = !keyd; break;
-	case "L": keyl = !keyl; break;
-	case "M": keym = !keym; break;
-	case "H": keyh = !keyh; break;
-	case "1": key1 = !key1; break;
-	case "2": key2 = !key2; break;
-	case "3": key3 = !key3; break;
-	case "0": key0 = !key0; break;
-  }
-
-  link.style("display", function(d) {
-				var flag  = vis_by_type(d.source.type)&&vis_by_type(d.target.type)&&vis_by_node_score(d.source.score)&&vis_by_node_score(d.target.score)&&vis_by_link_score(d.score);
-				linkedByIndex[d.source.index + "," + d.target.index] = flag;
-              return flag?"inline":"none";});
-  node.style("display", function(d) {
-				return (key0||hasConnections(d))&&vis_by_type(d.type)&&vis_by_node_score(d.score)?"inline":"none";});
-  text.style("display", function(d) {
-                return (key0||hasConnections(d))&&vis_by_type(d.type)&&vis_by_node_score(d.score)?"inline":"none";});
-
-				if (highlight_node !== null)
-				{
-					if ((key0||hasConnections(highlight_node))&&vis_by_type(highlight_node.type)&&vis_by_node_score(highlight_node.score)) {
-					if (focus_node!==null) set_focus(focus_node);
-					set_highlight(highlight_node);
-					}
-					else {exit_highlight();}
-				}
-
-}
+// 	if (d3.event.keyCode==32) {  force.stop();}
+// 	else if (d3.event.keyCode>=48 && d3.event.keyCode<=90 && !d3.event.ctrlKey && !d3.event.altKey && !d3.event.metaKey)
+// 	{
+//   switch (String.fromCharCode(d3.event.keyCode)) {
+//     case "C": keyc = !keyc; break;
+//     case "S": keys = !keys; break;
+// 	case "T": keyt = !keyt; break;
+// 	case "R": keyr = !keyr; break;
+//     case "X": keyx = !keyx; break;
+// 	case "D": keyd = !keyd; break;
+// 	case "L": keyl = !keyl; break;
+// 	case "M": keym = !keym; break;
+// 	case "H": keyh = !keyh; break;
+// 	case "1": key1 = !key1; break;
+// 	case "2": key2 = !key2; break;
+// 	case "3": key3 = !key3; break;
+// 	case "0": key0 = !key0; break;
+//   }
+//
+//   link.style("display", function(d) {
+// 				var flag  = vis_by_type(d.source.type)&&vis_by_type(d.target.type)&&vis_by_node_score(d.source.score)&&vis_by_node_score(d.target.score)&&vis_by_link_score(d.score);
+// 				linkedByIndex[d.source.index + "," + d.target.index] = flag;
+//               return flag?"inline":"none";});
+//   node.style("display", function(d) {
+// 				return (key0||hasConnections(d))&&vis_by_type(d.type)&&vis_by_node_score(d.score)?"inline":"none";});
+//   text.style("display", function(d) {
+//                 return (key0||hasConnections(d))&&vis_by_type(d.type)&&vis_by_node_score(d.score)?"inline":"none";});
+//
+// 				if (highlight_node !== null)
+// 				{
+// 					if ((key0||hasConnections(highlight_node))&&vis_by_type(highlight_node.type)&&vis_by_node_score(highlight_node.score)) {
+// 					if (focus_node!==null) set_focus(focus_node);
+// 					set_highlight(highlight_node);
+// 					}
+// 					else {exit_highlight();}
+// 				}
+//
+// }
 }
 
 });
