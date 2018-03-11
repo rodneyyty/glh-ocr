@@ -121,7 +121,7 @@ var g = svg.append("g");
 svg.style("cursor","move");
   console.log('GENERATING EVERYTHING')
   d3.json("datas.json", function(error, graph) {
-
+    GLOBAL_GRAPH = graph
 
     // get links
     let idToIndexMap = {}
@@ -139,7 +139,8 @@ svg.style("cursor","move");
     graph.nodes.map((node, i) => {
       idToIndexMap[node.id] = i
     })
-    // console.log(idToIndexMap)
+
+    console.log(idToIndexMap)
     graph.links = graph.edges.map((edge) => {
       edge = JSON.parse(JSON.stringify(edge))
       var deleteLink = false
@@ -153,6 +154,9 @@ svg.style("cursor","move");
       edge.origTarget = edge.target
       edge.source = idToIndexMap[edge.source]
       edge.target = idToIndexMap[edge.target]
+      if(edge.source === undefined || edge.target === undefined) {
+        return
+      }
       return edge
     })
 
