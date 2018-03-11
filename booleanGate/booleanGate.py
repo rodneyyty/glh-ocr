@@ -15,10 +15,10 @@ pp = pprint.PrettyPrinter(indent=3)
 
 # generates the data format needed for sigma.js
 def generateVis():
-    data_list = produceDataList(loadRelations())
+    data_list = produceDataList(loadRelations(), loadFolderFiles())
     mnl = data_list[1]  #list of missing nodes
     el = data_list[0]   #initial edge list created
-    nl = populateNodeList(loadRelations()) #initial node list created
+    nl = populateNodeList(loadRelations(),el,mnl) #initial node list created
 
     defg = fixMissingValues(mnl, nl, el)
     node_list = defg[0]
@@ -29,6 +29,7 @@ def generateVis():
     }
 
     path = u'../vis/datas.json'
+
     appendToFile(path, toAppend)
 
 
@@ -71,49 +72,53 @@ def loadRelations():
             indexer[cid] = temp
     return indexer
 
-def produceDataList(indexer):
+def produceDataList(relations_list,folder_items):
     data_list = []
     edge_list = []
     missing_nl = {} #label, path
     eid_count = 0
     mid_count = 0
     count = 0
-    for key,value in indexer.items():
-        if len(value['relations']) > 0:
-            for r in value['relations']:
-                if is_number(value['relations'][r][1]):
-                   edge = createEdge(str(eid_count), "n"+str(key), "n"+value['relations'][r][1], value['relations'][r][0], count)
-                   edge_list.append(edge)
-                   eid_count+=1
-                   count+=5
-                else:
-                    searchPath = "https://www.google.com.sg/search?q=1"
-                    label = value['relations'][r][1]
-                    path = searchPath + '+'.join(label.split())
-                    mid = "m"+str(mid_count)
-                    mnl = {}
-                    temp = {
-                        'label' : label
-                        ,'path' : path
-                    }
-                    missing_nl[mid] = temp
-                    # missing_nl.append(mnl)
-                    edge = createEdge(str(eid_count), "n" + str(key), "m"+str(mid_count),
-                                      value['relations'][r][0], count)
-                    edge_list.append(edge)
-                    mid_count += 1
+
+    for folder_key,folder_value in folder_items.items():
+        # folder_name = folder_value
+        # key_id = "n" + str(folder_key)
+
+        for key,value in relations_list.items():
+            if len(value['relations']) > 0 and key == folder_key:
+                for r in value['relations']:
+                    if is_number(value['relations'][r][1]):
+                       edge = createEdge(str(eid_count), "n"+str(key), "n"+value['relations'][r][1], value['relations'][r][0], count)
+                       edge_list.append(edge)
+                       eid_count+=1
+                       count+=5
+                    else:
+                        searchPath = "https://www.google.com.sg/search?q=1"
+                        label = value['relations'][r][1]
+                        path = searchPath + '+'.join(label.split())
+                        mid = "m"+str(mid_count)
+                        temp = {
+                            'label' : label
+                            ,'path' : path
+                        }
+                        missing_nl[mid] = temp
+                        # missing_nl.append(mnl)
+                        edge = createEdge(str(eid_count), "n" + str(key), "m"+str(mid_count),
+                                          value['relations'][r][0], count)
+                        edge_list.append(edge)
+                        mid_count += 1
 
     data_list.append(edge_list)
     data_list.append(missing_nl)
     return data_list
 
 
-def loadIRAS():
+def loadFolderFiles():
     indexer = {}
     pathName = "../data/IRAS/"
     lists = [[[y for y in x] for x in items if "C:\\" not in x] for items in os.walk(pathName)]
-    IRAS_list = [[[x for x in item] for item in items[1:] if len(item) > 0] for items in lists]
-    flattened_list = list(itertools.chain(*IRAS_list))
+    folder_list = [[[x for x in item] for item in items[1:] if len(item) > 0] for items in lists]
+    flattened_list = list(itertools.chain(*folder_list))
     IRAS_list = list(itertools.chain(*flattened_list))
     count_ = 0
     for items in IRAS_list:
@@ -205,8 +210,6 @@ def filterByFileName(file_name):
                 edge_list.append(edge)
                 node_list.append(getNode(edge['target']))
 
-    # pp.pprint(node_list)
-    # pp.pprint(edge_list)
     path = u'../vis/filtered_datas.json'
     toAppend = {
         'nodes' : node_list
@@ -218,9 +221,6 @@ def filterByFileName(file_name):
 
 def getAllNodes():
     data = json.load(codecs.open(u'../vis/datas.json',encoding="utf-8", errors='ignore'))
-    # for items in data['nodes']:
-    #     if is_number(items['label']):
-            # pp.pprint(items)
     return data['nodes']
 
 
@@ -237,10 +237,11 @@ def getNode(nid):
             node_found = node
     return node_found
 
-def populateNodeList(nl):
+
+def populateNodeList(nl,el,mnl):
     path = u'data/'
     node_list = []
-    folder_list = loadIRAS()
+    folder_list = loadFolderFiles()
     list_names = []
     for item in folder_list.values():
         list_names.append(item)
@@ -249,12 +250,13 @@ def populateNodeList(nl):
         if checkList(list_names,values['label'][:-4]):
             tempN = createNode(id,values['label'][:-4],path+values['label'])
             node_list.append(tempN)
-        else:
-            searchPath = "https://www.google.com.sg/search?q=1"
-            path = searchPath + '+'.join(values['label'].split())
-            tempN = createMissingNode(id, values['label'][:-4], path)
-            node_list.append(tempN)
+        # else:
+        #     searchPath = "https://www.google.com.sg/search?q=1"
+        #     path = searchPath + '+'.join(values['label'].split())
+        #     tempN = createMissingNode(id, values['label'][:-4], path)
+        #     node_list.append(tempN)
     return node_list
+
 
 def fixMissingValues(mnl,nl,el):
     node_list = nl
@@ -283,3 +285,5 @@ def checkList(list, value):
 #For testing purposes:
 generateVis()
 # filterByFileName('etaxguides_GST_Exports_2013-12-31')
+# produceDataList(loadRelations(),loadFolderFiles())
+# pp.pprint(loadFolderFiles())
