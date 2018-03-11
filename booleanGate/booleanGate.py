@@ -21,7 +21,6 @@ def generateVis():
     nl = populateNodeList(loadRelations()) #initial node list created
 
     defg = fixMissingValues(mnl, nl, el)
-    # pp.pprint(defg)
     node_list = defg[0]
     edge_list = defg[1]
     toAppend = {
@@ -103,10 +102,7 @@ def produceDataList(indexer):
                                       value['relations'][r][0], count)
                     edge_list.append(edge)
                     mid_count += 1
-    # for item in missing_nl:
-    #     if item['mid'] == 'm31':
-    #         print('m31 isss')
-    #         print(item['label'])
+
     data_list.append(edge_list)
     data_list.append(missing_nl)
     return data_list
@@ -245,8 +241,12 @@ def populateNodeList(nl):
     path = u'data/'
     node_list = []
     folder_list = loadIRAS()
+    list_names = []
+    for item in folder_list.values():
+        list_names.append(item)
+
     for id,values in nl.items():
-        if values['label'][:-4] in folder_list.values():
+        if checkList(list_names,values['label'][:-4]):
             tempN = createNode(id,values['label'][:-4],path+values['label'])
             node_list.append(tempN)
         else:
@@ -274,9 +274,12 @@ def fixMissingValues(mnl,nl,el):
     fixed_list.append(el)
     return fixed_list
 
-
+def checkList(list, value):
+    for item in list:
+        if value in item:
+            return True
+    return False
 
 #For testing purposes:
-# generateVis()
-# getAllNodes()
+generateVis()
 # filterByFileName('etaxguides_GST_Exports_2013-12-31')
