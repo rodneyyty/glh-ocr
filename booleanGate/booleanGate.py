@@ -264,7 +264,7 @@ def fixMissingValues(mnl,nl,el):
         target = item['target']
         for keys in mnl:
             if target == keys:
-                print(target)
+                # print(target)
                 nid = len(node_list)
                 label = mnl[target]['label']
                 path = mnl[target]['path']
@@ -275,7 +275,7 @@ def fixMissingValues(mnl,nl,el):
     lr = loadRelations()
     searchPath = "https://www.google.com.sg/search?q=1"
 
-    pp.pprint(node_list)
+    # pp.pprint(node_list)
     for item in el:
         target = item['target']
         if checkNodeID(node_list,target):
