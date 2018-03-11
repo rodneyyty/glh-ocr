@@ -18,6 +18,10 @@ circle {
   stroke-width: 1.5px;
 }
 
+.search-highlighted {
+  stroke-width: 5px !important;
+}
+
 text {
   fill: #000;
   font: 10px sans-serif;
@@ -348,9 +352,11 @@ svg.style("cursor","move");
 
       search_highlight = function(searchStr) {
         circle.style(towhite, function(o) {
-          if (o.label.indexOf(searchStr) > -1) {
+          if (o.label.toLowerCase().indexOf(searchStr.toLowerCase()) > -1) {
+            $(this).addClass("search-highlighted")
             return "red"
           } else {
+            $(this).removeClass("search-highlighted")
             return "white"
           }
         });
@@ -365,6 +371,7 @@ svg.style("cursor","move");
         if (highlight_color!="white")
         {
           circle.style(towhite, function(o) {
+            $(this).removeClass("search-highlighted")
             let connectedRes = isConnected(d ,o)
             if (connectedRes === 1) {
               return highlight_color
