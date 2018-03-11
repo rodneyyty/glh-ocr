@@ -267,7 +267,7 @@ def fixMissingValues(mnl,nl,el):
                 label = mnl[target]['label']
                 path = mnl[target]['path']
                 node = createMissingNode(str(nid), label, path)
-                item['target'] = nid
+                item['target'] = ("n"+str(nid))
                 node_list.append(node)
 
     fixed_list.append(node_list)
