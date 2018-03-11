@@ -15,67 +15,18 @@ pp = pprint.PrettyPrinter(indent=3)
 
 # generates the data format needed for sigma.js
 def generateVis():
-    test_set = []
-    path = u'data/'
-    edge_list = {}
-    # loads relations that are created by human interpretation
-    IRAS_data = loadIRAS()
-    node_list = []
+    data_list = produceDataList(loadRelations())
+    mnl = data_list[1]  #list of missing nodes
+    el = data_list[0]   #initial edge list created
+    nl = populateNodeList(loadRelations()) #initial node list created
 
-    # reading relation file between IRAS files
-    with codecs.open(u'../data/IRAS_cleaned.csv', 'r', encoding="utf-8", errors='ignore') as infile:
-        reader = csv.reader(infile)
-        for x in reader:
-            doc_name = (x[0].split(':')[1])[1:]
-            if (doc_name not in IRAS_data.values()):
-                print (doc_name)
-                print (IRAS_data.values())
-                continue
-            nid = x[1]
-            data = x[2:]
-            rel_data = {}
-            if "etaxguide_GST_GST Exemption of Investment Precious Metals" in doc_name:
-                print("lol....")
-            while len(data) > 0:
-                rel_ = data.pop(0)
-                doc_ = data.pop(0)
-                if len(doc_) > 0:
-                    if is_number(doc_) and doc_ in IRAS_data:
-                        doc_ = IRAS_data[doc_]
-                        rel_data[doc_] = rel_
-                        edge_list["n" + nid] = rel_data
-                    else:
-                        doc_ = removeQuotes(doc_)
-                        rel_data[doc_] = rel_
-                        edge_list["n" + nid] = rel_data
-
-            node_list.append(createNode(nid, doc_name[:-4], path + doc_name))
-
-        edge_count = 0
-        source_count = 0
-        all_edges = []
-
-        for key, value in edge_list.items():
-            for key2, relations_item in value.items():
-                # START - checks whether we have a missing document, then adds a new node
-                if len(relations_item) > 0:
-                    if key2[len(key2) - 4:] != '.pdf':
-                        searchPath = "https://www.google.com.sg/search?q="
-                        node_list.append(
-                            createMissingNode(str(len(node_list)), key2, searchPath + '+'.join(key2.split())))
-                    else:
-                        node_list.append(createNode(str(len(node_list)), key2[:-4], path + key2))
-                    # END - checks whether we have a missing document, then adds a new node
-                    # createEdge returns an edge object in JSON
-                    all_edges.append(
-                        createEdge(str(edge_count), key[1:], str(len(node_list) - 1), relations_item, source_count))
-
-                source_count += 5
-                edge_count += 1
-
+    defg = fixMissingValues(mnl, nl, el)
+    pp.pprint(defg)
+    node_list = defg[0]
+    edge_list = defg[1]
     toAppend = {
         "nodes": node_list
-        , "edges": all_edges
+        , "edges": edge_list
     }
 
     path = u'../vis/datas.json'
@@ -90,6 +41,77 @@ def appendToFile(pathName, data):
 # loadsIRAS() reads all the files in your directory, and indexes them by name
 # the indexing is linked to the IRAS_cleaned dataset as the relation is done by human input
 # human input follows the code that we generated from this list
+def loadRelations():
+    temp = {}
+    count_ = 0
+    with codecs.open(u'../data/IRAS_cleaned.csv', 'r', encoding="utf-8", errors='ignore') as infile:
+        reader = csv.reader(infile)
+        for items in reader:
+            convert = False
+            temp[str(count_)] = items
+            count_ += 1
+    indexer = {}
+    for item, value in temp.items():
+        label = (value[0].split(':')[1])[1:]
+        cid = item
+        data = value[2:]
+        relations = {}
+        rel_count = 0
+
+        while len(data) > 0:
+            rel_ = data.pop(0)
+            doc_ = data.pop(0)
+            if len(rel_) and len(doc_) > 0:
+                relations["r" + str(rel_count)] = [rel_,doc_]
+                rel_count+=1
+        temp = {
+            'label': label
+            , 'relations': relations
+        }
+        if len(label) > 0:
+            indexer[cid] = temp
+    return indexer
+
+def produceDataList(indexer):
+    data_list = []
+    edge_list = []
+    missing_nl = {} #label, path
+    eid_count = 0
+    mid_count = 0
+    count = 0
+    for key,value in indexer.items():
+        if len(value['relations']) > 0:
+            for r in value['relations']:
+                if is_number(value['relations'][r][1]):
+                   edge = createEdge(str(eid_count), "n"+str(key), "n"+value['relations'][r][1], value['relations'][r][0], count)
+                   edge_list.append(edge)
+                   eid_count+=1
+                   count+=5
+                else:
+                    searchPath = "https://www.google.com.sg/search?q=1"
+                    label = value['relations'][r][1]
+                    path = searchPath + '+'.join(label.split())
+                    mid = "m"+str(mid_count)
+                    mnl = {}
+                    temp = {
+                        'label' : label
+                        ,'path' : path
+                    }
+                    missing_nl[mid] = temp
+                    # missing_nl.append(mnl)
+                    edge = createEdge(str(eid_count), "n" + str(key), "m"+str(mid_count),
+                                      value['relations'][r][0], count)
+                    edge_list.append(edge)
+                    mid_count += 1
+    # for item in missing_nl:
+    #     if item['mid'] == 'm31':
+    #         print('m31 isss')
+    #         print(item['label'])
+    data_list.append(edge_list)
+    data_list.append(missing_nl)
+    return data_list
+
+
 def loadIRAS():
     indexer = {}
     pathName = "../data/IRAS/"
@@ -111,6 +133,14 @@ def is_number(s):
         return True
     except ValueError:
         return False
+
+
+def is_not_number(s):
+    try:
+        float(s)
+        return False
+    except ValueError:
+        return True
 
 
 def removeQuotes(data):
@@ -146,8 +176,8 @@ def createMissingNode(id, label, path):
 def createEdge(eid, nid, targetid, label, count):
     edge = {
         "id": "e" + eid
-        , "source": "n" + nid
-        , "target": "n" + targetid
+        , "source": nid
+        , "target": targetid
         , "label": label
         , "type": "curvedArrow"
         , "size": 5
@@ -187,12 +217,14 @@ def filterByFileName(file_name):
         ,'edges' : edge_list
     }
     appendToFile(path, toAppend)
-
     return None
 
 
 def getAllNodes():
     data = json.load(codecs.open(u'../vis/datas.json',encoding="utf-8", errors='ignore'))
+    for items in data['nodes']:
+        if is_number(items['label']):
+            pp.pprint(items)
     return data['nodes']
 
 
@@ -209,7 +241,43 @@ def getNode(nid):
             node_found = node
     return node_found
 
+def populateNodeList(nl):
+    path = u'data/'
+    node_list = []
+    folder_list = loadIRAS()
+    for id,values in nl.items():
+        if values['label'][:-4] in folder_list.values():
+            tempN = createNode(id,values['label'][:-4],path+values['label'])
+            node_list.append(tempN)
+        else:
+            searchPath = "https://www.google.com.sg/search?q=1"
+            path = searchPath + '+'.join(values['label'].split())
+            tempN = createMissingNode(id, values['label'][:-4], path)
+            node_list.append(tempN)
+    return node_list
+
+def fixMissingValues(mnl,nl,el):
+    node_list = nl
+    fixed_list = []
+    for item in el:
+        target = item['target']
+        for keys in mnl:
+            if target == keys:
+                nid = len(node_list)
+                label = mnl[target]['label']
+                path = mnl[target]['path']
+                node = createMissingNode(str(nid), label, path)
+                item['target'] = nid
+                node_list.append(node)
+
+    fixed_list.append(node_list)
+    fixed_list.append(el)
+    return fixed_list
+
+
+
 #For testing purposes:
-# generateVis()
+generateVis()
 # getAllNodes()
 # filterByFileName('etaxguides_GST_Exports_2013-12-31')
+
