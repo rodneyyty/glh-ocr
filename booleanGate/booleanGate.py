@@ -277,7 +277,6 @@ def fixMissingValues(mnl,nl,el):
 
 
 #For testing purposes:
-generateVis()
+# generateVis()
 # getAllNodes()
 # filterByFileName('etaxguides_GST_Exports_2013-12-31')
-
