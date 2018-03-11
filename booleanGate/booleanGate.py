@@ -21,7 +21,6 @@ def generateVis():
     nl = populateNodeList(loadRelations()) #initial node list created
 
     defg = fixMissingValues(mnl, nl, el)
-    pp.pprint(defg)
     node_list = defg[0]
     edge_list = defg[1]
     toAppend = {
@@ -103,10 +102,7 @@ def produceDataList(indexer):
                                       value['relations'][r][0], count)
                     edge_list.append(edge)
                     mid_count += 1
-    # for item in missing_nl:
-    #     if item['mid'] == 'm31':
-    #         print('m31 isss')
-    #         print(item['label'])
+
     data_list.append(edge_list)
     data_list.append(missing_nl)
     return data_list
@@ -209,8 +205,6 @@ def filterByFileName(file_name):
                 edge_list.append(edge)
                 node_list.append(getNode(edge['target']))
 
-    pp.pprint(node_list)
-    pp.pprint(edge_list)
     path = u'../vis/filtered_datas.json'
     toAppend = {
         'nodes' : node_list
@@ -222,9 +216,6 @@ def filterByFileName(file_name):
 
 def getAllNodes():
     data = json.load(codecs.open(u'../vis/datas.json',encoding="utf-8", errors='ignore'))
-    for items in data['nodes']:
-        if is_number(items['label']):
-            pp.pprint(items)
     return data['nodes']
 
 
@@ -245,8 +236,12 @@ def populateNodeList(nl):
     path = u'data/'
     node_list = []
     folder_list = loadIRAS()
+    list_names = []
+    for item in folder_list.values():
+        list_names.append(item)
+
     for id,values in nl.items():
-        if values['label'][:-4] in folder_list.values():
+        if checkList(list_names,values['label'][:-4]):
             tempN = createNode(id,values['label'][:-4],path+values['label'])
             node_list.append(tempN)
         else:
@@ -274,10 +269,13 @@ def fixMissingValues(mnl,nl,el):
     fixed_list.append(el)
     return fixed_list
 
-
+def checkList(list, value):
+    for item in list:
+        if value in item:
+            return True
+    return False
 
 #For testing purposes:
 generateVis()
-# getAllNodes()
 # filterByFileName('etaxguides_GST_Exports_2013-12-31')
 
