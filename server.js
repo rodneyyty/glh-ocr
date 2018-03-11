@@ -9,4 +9,4 @@ app.get('/datas.json', (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname + '/vis/index.html'))
 });
-app.listen(80)
+app.listen(3000)
