@@ -113,7 +113,7 @@ def produceDataList(relations_list,folder_items):
 
 def loadFolderFiles():
     indexer = {}
-    pathName = "../data/IRAS/"
+    pathName = "../data/Demo Library/"
     lists = [[[y for y in x] for x in items if "C:\\" not in x] for items in os.walk(pathName)]
     folder_list = [[[x for x in item] for item in items[1:] if len(item) > 0] for items in lists]
     flattened_list = list(itertools.chain(*folder_list))
