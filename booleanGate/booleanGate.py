@@ -21,7 +21,7 @@ def generateVis():
     nl = populateNodeList(loadRelations()) #initial node list created
 
     defg = fixMissingValues(mnl, nl, el)
-    pp.pprint(defg)
+    # pp.pprint(defg)
     node_list = defg[0]
     edge_list = defg[1]
     toAppend = {
@@ -209,8 +209,8 @@ def filterByFileName(file_name):
                 edge_list.append(edge)
                 node_list.append(getNode(edge['target']))
 
-    pp.pprint(node_list)
-    pp.pprint(edge_list)
+    # pp.pprint(node_list)
+    # pp.pprint(edge_list)
     path = u'../vis/filtered_datas.json'
     toAppend = {
         'nodes' : node_list
@@ -222,9 +222,9 @@ def filterByFileName(file_name):
 
 def getAllNodes():
     data = json.load(codecs.open(u'../vis/datas.json',encoding="utf-8", errors='ignore'))
-    for items in data['nodes']:
-        if is_number(items['label']):
-            pp.pprint(items)
+    # for items in data['nodes']:
+    #     if is_number(items['label']):
+            # pp.pprint(items)
     return data['nodes']
 
 
