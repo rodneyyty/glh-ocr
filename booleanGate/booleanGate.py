@@ -80,12 +80,10 @@ def produceDataList(relations_list,folder_items):
     mid_count = 0
     count = 0
 
-    for folder_key,folder_value in folder_items.items():
-        # folder_name = folder_value
-        # key_id = "n" + str(folder_key)
 
+    for folder_key,folder_value in folder_items.items():
         for key,value in relations_list.items():
-            if len(value['relations']) > 0 and key == folder_key:
+            if len(value['relations']) > 0 and value['label'] == folder_value:
                 for r in value['relations']:
                     if is_number(value['relations'][r][1]):
                        edge = createEdge(str(eid_count), "n"+str(key), "n"+value['relations'][r][1], value['relations'][r][0], count)
@@ -96,14 +94,14 @@ def produceDataList(relations_list,folder_items):
                         searchPath = "https://www.google.com.sg/search?q=1"
                         label = value['relations'][r][1]
                         path = searchPath + '+'.join(label.split())
-                        mid = "m"+str(mid_count)
+                        mid = "m"+str(len(relations_list)+len(missing_nl))
                         temp = {
                             'label' : label
                             ,'path' : path
                         }
                         missing_nl[mid] = temp
                         # missing_nl.append(mnl)
-                        edge = createEdge(str(eid_count), "n" + str(key), "m"+str(mid_count),
+                        edge = createEdge(str(eid_count), "n" + str(key), mid,
                                           value['relations'][r][0], count)
                         edge_list.append(edge)
                         mid_count += 1
@@ -261,20 +259,43 @@ def populateNodeList(nl,el,mnl):
 def fixMissingValues(mnl,nl,el):
     node_list = nl
     fixed_list = []
+    rel_size = len(loadRelations())
     for item in el:
         target = item['target']
         for keys in mnl:
             if target == keys:
+                print(target)
                 nid = len(node_list)
                 label = mnl[target]['label']
                 path = mnl[target]['path']
-                node = createMissingNode(str(nid), label, path)
-                item['target'] = ("n"+str(nid))
+                node = createMissingNode(str(rel_size+nid), label, path)
+                item['target'] = ("n"+str(rel_size+nid))
                 node_list.append(node)
+
+    lr = loadRelations()
+    searchPath = "https://www.google.com.sg/search?q=1"
+
+    pp.pprint(node_list)
+    for item in el:
+        target = item['target']
+        if checkNodeID(node_list,target):
+            nid = target[1:]
+            label = lr[nid]['label'][:-4]
+            path = searchPath + '+'.join(label.split())
+            node = createMissingNode(str(nid), label, path)
+            node_list.append(node)
+
+
 
     fixed_list.append(node_list)
     fixed_list.append(el)
     return fixed_list
+
+def checkNodeID(list,value):
+    for item in list:
+        if value == item['id']:
+            return False
+    return True
 
 def checkList(list, value):
     for item in list:
