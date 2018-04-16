@@ -198,6 +198,7 @@ text {
     var highlight_color_2 = "aquamarine"
     var highlight_color_3 = "#ee6df9"
     var highlight_trans = 0.1;
+    var highlight_trans_2 = 0.0;
 
     var size = d3.scale.pow().exponent(1)
     .domain([1,100])
@@ -208,7 +209,7 @@ text {
     .charge(-300)
     .size([w,h]);
 
-    var default_node_color = "#ccc";
+    var default_node_color = "#999999";
     //var default_node_color = "rgb(3,190,100)";
     var default_link_color = "#000";
     var nominal_base_node_size = 10;
@@ -424,6 +425,8 @@ text {
 
         }	);
 
+        makeOpacityLowOnStart()
+
         d3.select(window).on("mouseup",
         function() {
           if (focus_node!==null)
@@ -452,6 +455,7 @@ text {
               circle.style(towhite, "white");
               text.style("font-weight", "normal");
               link.style("stroke", function(o) {return (isNumber(o.score) && o.score>=0)?color(o.score):default_link_color});
+              makeOpacityLowOnStart()
             }
 
           }
@@ -465,7 +469,7 @@ text {
             });
 
             text.style("opacity", function(o) {
-              return isConnected(d, o) ? 1 : highlight_trans;
+              return isConnected(d, o) ? 1 : highlight_trans_2;
             });
 
             link.style("opacity", function(o) {
@@ -474,11 +478,25 @@ text {
           }
         }
 
+
+        function makeOpacityLowOnStart(){
+          circle.style("opacity",1);
+
+          circle.style(towhite, "white")
+
+          text.style("opacity",highlight_trans_2);
+
+          link.style("opacity", 1);
+        }
+
+
+
         clear_highlight = function() {
           circle.style(towhite, "white")
         }
 
         search_highlight = function(searchStr) {
+
           circle.style(towhite, function(o) {
             if (o.label.toLowerCase().indexOf(searchStr.toLowerCase()) > -1) {
               $(this).addClass("search-highlighted")
@@ -488,6 +506,17 @@ text {
               return "white"
             }
           });
+
+          text.style("opacity", function(o) {
+            if (o.label.toLowerCase().indexOf(searchStr.toLowerCase()) > -1) {
+              // $(this).addClass("search-highlighted")
+              return 1.0
+            } else {
+              // $(this).removeClass("search-highlighted")
+              return highlight_trans_2
+            }
+          });
+
         }
 
         function set_highlight(d)
