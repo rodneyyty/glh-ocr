@@ -210,6 +210,7 @@ text {
     .size([w,h]);
 
     var default_node_color = "#999999";
+    var missing_file_node_color = "#ff8e8e";
     //var default_node_color = "rgb(3,190,100)";
     var default_link_color = "#000";
     var nominal_base_node_size = 10;
@@ -368,14 +369,20 @@ text {
           tocolor = "stroke"
           towhite = "fill"
         }
-
+        var thing = 1
 
 
         var circle = node.append("path")
         .attr("d", d3.svg.symbol()
         .size(function(d) { return Math.PI*Math.pow(size(d.size)||nominal_base_node_size,2); })
         .type(function(d) { return d.type; }))
-        .style(tocolor, default_node_color)
+        .style(tocolor, function(d) {
+          if (d.type === 'circle') {
+            return missing_file_node_color;
+          } else {
+            return default_node_color;
+          }
+        })
         // .style(tocolor, function(d) {
         // if (isNumber(d.score) && d.score>=0) return color(d.score);
         // else return default_node_color; })
